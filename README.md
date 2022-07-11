@@ -6,3 +6,8 @@ asterisks using 120 x 32 characters for a 20x4 display (5+1 x 8).
 As of 7/11, I think I managed to successfully add SFML to the CLion project with some *major* help and inspiration
 from https://github.com/eXpl0it3r/cmake-sfml-project/tree/copy_dlls , so now I can finally start rendering
 the emulated LCD itself graphically.
+
+### Warning
+
+This is *literally* the first meaningful non-Arduino C++ development project I've ever attempted. Absolutely,
+positively **do not** regard it as an example of good (let alone "best") C++ practices. 
