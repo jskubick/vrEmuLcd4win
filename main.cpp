@@ -1,6 +1,7 @@
 #include <iostream>
 #define VR_LCD_EMU_STATIC 1
 #include "VrEmuLcd.h"
+#include <SFML/Graphics.hpp>
 
 /*
  * CP437 uses codepoints 0xDB=top+bottom, DC=bottom, DF=top
@@ -46,5 +47,25 @@ int main() {
     }
 
     std::cout << "done";
+
+
+    auto window = sf::RenderWindow{ { 1920u, 1080u }, "CMake SFML Project" };
+    window.setFramerateLimit(144);
+
+    while (window.isOpen())
+    {
+        for (auto event = sf::Event{}; window.pollEvent(event);)
+        {
+            if (event.type == sf::Event::Closed)
+            {
+                window.close();
+            }
+        }
+
+        window.clear();
+        window.display();
+    }
+
+
     return 0;
 }
