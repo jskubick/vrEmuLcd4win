@@ -1,11 +1,12 @@
-This is my attempt to implement Troy Schrapel's HD44780 LCD emulator for Windows.
+Implementation of Troy Schrapel's HD44780 LCD emulator for Windows.
 
-At the moment, I haven't implemented anything related to graphics. It just renders the output as spaces and
-asterisks using 120 x 32 characters for a 20x4 display (5+1 x 8).
+Two of the files (VrEmuLcd.h and .c) were taken verbatim from https://github.com/visrealm/vrEmuLcd and haven't
+been changed.
 
-As of 7/11, I think I managed to successfully add SFML to the CLion project with some *major* help and inspiration
-from https://github.com/eXpl0it3r/cmake-sfml-project/tree/copy_dlls , so now I can finally start rendering
-the emulated LCD itself graphically.
+I know that in theory, I should have probably included his two files as a Git submodule instead of just copying 
+them to my project... but to be honest, I don't actually know _how_. More precisely... I know how to pull the 
+files into my repo, but I don't know how to partially sever the link so SmartGit won't pester me thereafter
+about not having write access to the other person's remote repo (where the files in the submodule came from).
 
 ### Warning
 

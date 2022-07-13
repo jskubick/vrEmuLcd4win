@@ -9,7 +9,7 @@ FetchContent_Declare(SFML
         GIT_TAG 2.6.x)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(fakelcd main.cpp VrEmuLcd.c VrEmuLcd.h LcdRenderer.cpp LcdRenderer.h)
+add_executable(fakelcd main.cpp VrEmuLcd.c VrEmuLcd.h EmulatedLcdWindow.cpp EmulatedLcdWindow.h)
 
 target_link_libraries(fakelcd PRIVATE sfml-graphics)
 target_compile_features(fakelcd PRIVATE cxx_std_17)
