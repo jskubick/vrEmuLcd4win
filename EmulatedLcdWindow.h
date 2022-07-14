@@ -24,12 +24,18 @@ public:
     bool isOpen();
     void handleWindowEvents();
 
+    // directly passed through to the underlying VrEmuLcd
     void sendCommand(uint8_t);
     void writeByte(uint8_t value);
     void writeString(char* value);
 
+    // sends commands to underlying VrEmuLcd
     void clear(); // LCD_CMD_CLEAR
     void moveToHome(); // LCD_CMD_HOME
+
+    /** Moves cursor to row, col.
+     *  WARNING: no sanity-checking is performed.
+     */
     void moveTo(uint8_t row, uint8_t col);
 
     /** prints character at (col, row)
