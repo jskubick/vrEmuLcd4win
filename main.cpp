@@ -5,26 +5,16 @@
 
 #define LCD_ROWS 4
 #define LCD_COLS 20
-#define LCD_PIXEL_DIMENSIONS 10
-
-void setPixel(sf::Image& bitmap, int coordX, int coordY, sf::Color color) {
-    int startY = coordY * LCD_PIXEL_DIMENSIONS;
-    int startX = coordX * LCD_PIXEL_DIMENSIONS;
-    for (int y = startY; y < (startY + LCD_PIXEL_DIMENSIONS); y++) {
-        for (int x = startX; x < (startX + LCD_PIXEL_DIMENSIONS); x++) {
-            bitmap.setPixel(x, y, color);
-        }
-    }
-}
+#define LCD_PIXEL_DIMENSIONS 4.0
 
 int main() {
-    EmulatedLcdWindow window = EmulatedLcdWindow(LCD_COLS, LCD_ROWS, 10);
-    int counter = 0x7f;
+    EmulatedLcdWindow window = EmulatedLcdWindow(LCD_COLS, LCD_ROWS, LCD_PIXEL_DIMENSIONS);
+    window.print(3,0, "Text on row 4 of LCD");
+    uint8_t counter = 0;
     while (window.isOpen()) {
-        counter++;
-        if (counter > 0x7f)
-            counter = 0x30;
-        window.printChar(0,0,counter);
+        window.print(0, counter % LCD_COLS, counter & 0x7f);
+        window.print(1, counter % LCD_COLS, 128 + (counter & 0x7f));
+        ++counter &=0x7f;
         window.handleWindowEvents();
         Sleep(200);
     }
