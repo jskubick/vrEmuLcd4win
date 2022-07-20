@@ -1,3 +1,0 @@
-[submodule "formatter"]
-	path = formatter
-	url = https://github.com/jskubick/hd44780-formatter
