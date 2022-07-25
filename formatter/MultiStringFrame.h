@@ -8,7 +8,7 @@
 class MultiStringFrame : public BaseFrame {
 public:
     MultiStringFrame(int row, int startCol, int width, int quantity);
-    void setValue(int whichOne, int millisToShow, char* newValue);
+    void setValue(int whichOne, int millisToShow, const char* newValue);
     bool renderInto(char* target, int currentTimeMillis);
 private:
     uint8_t howMany;

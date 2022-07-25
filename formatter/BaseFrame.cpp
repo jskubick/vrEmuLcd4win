@@ -16,3 +16,37 @@ bool BaseFrame::copy(char* src, char* dest, int len) {
 bool BaseFrame::renderInto(char* buf, int currentTimeMillis) {
     return false;
 }
+
+int BaseFrame::strcopy(char* src, char* dest, int len, bool clearRemainder) {
+    bool pastEnd = false;
+    for (int x=0; x<len; x++) {
+        pastEnd |= (*(src+x) == 0);
+        if (pastEnd) {
+            if (clearRemainder)
+                *(dest+x) = 0x20;
+            else
+                return x+1;
+        }
+        else {
+            *(dest+x) = *(src+x);
+        }
+    }
+    return len;
+}
+
+int BaseFrame::strcopy(const char* src, char* dest, int len, bool clearRemainder) {
+    bool pastEnd = false;
+    for (int x=0; x<len; x++) {
+        pastEnd |= (*(src+x) == 0);
+        if (pastEnd) {
+            if (clearRemainder)
+                *(dest+x) = 0x20;
+            else
+                return x;
+        }
+        else {
+            *(dest+x) = *(src+x);
+        }
+    }
+    return len;
+}

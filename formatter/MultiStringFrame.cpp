@@ -9,9 +9,8 @@ MultiStringFrame::MultiStringFrame(int row, int startCol, int width, int quantit
         millisPerFrame((uint16_t*) malloc(quantity)){
 }
 
-void MultiStringFrame::setValue(int whichOne, int millisToShow, char* newValue) {
-    for (int x=0; x<width; x++)
-        *(pValues + (whichOne * width) + x) = newValue[x];
+void MultiStringFrame::setValue(int whichOne, int millisToShow, const char* newValue) {
+    strcopy(newValue, pValues + (whichOne * width), width, true);
     *(millisPerFrame + whichOne) = (uint16_t)millisToShow;
 }
 

@@ -12,12 +12,13 @@
 #include "formatter/StringFrame.h"
 #include "formatter/SmashedDecimal.h"
 #include "formatter/MultiStringFrame.h"
+#include "formatter/MarqueeFrame.h"
 
 int main() {
     DisplayManager displayManager;
     EmulatedLcdWindow window = EmulatedLcdWindow(LCD_COLS, LCD_ROWS, LCD_PIXEL_DIMENSIONS);
 
-    displayManager.addFrame(new StringFrame(0,0,11, "Temperature"));
+    displayManager.addFrame(new StringFrame(0,0,8, "Status:"));
     displayManager.addFrame(new StringFrame(2,0,4, "Left"));
     displayManager.addFrame(new StringFrame(2,7, 6, "Middle"));
     displayManager.addFrame(new StringFrame(2, 15, 5, "Right"));
@@ -51,8 +52,7 @@ int main() {
     pop->setValue(4, 800, nextChar);
     displayManager.addFrame(pop);
 
-    StringFrame* ab = new StringFrame(3,15, 1, "A");
-    displayManager.addFrame(ab);
+    displayManager.addFrame(new MarqueeFrame(0, 8, 12, 20, "System is running", 10, 50, 200));
 
     /*
     SmashedDecimal* smashed[6];
@@ -87,7 +87,7 @@ int main() {
         window.handleWindowEvents();
 
 
-       
+
 
         //Sleep(100);
     }
