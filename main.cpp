@@ -2,58 +2,93 @@
 #include "EmulatedLcdWindow.h"
 #include <SFML/Graphics.hpp>
 #include <Windows.h>
+#include <chrono>
 
-#define LCD_ROWS 4
-#define LCD_COLS 20
+
 #define LCD_PIXEL_DIMENSIONS 3.0
 
-#include "formatter/CharacterDisplay.h"
+#include "formatter/DisplayManager.h"
 #include "formatter/BaseFrame.h"
 #include "formatter/StringFrame.h"
-
-/*
- * @ToDo: fix time from seconds to millis
- * @ToDo: finish implementing MultiStringFrame
- */
+#include "formatter/SmashedDecimal.h"
+#include "formatter/MultiStringFrame.h"
 
 int main() {
-    CharacterDisplay framebuf(LCD_ROWS, LCD_COLS);
-    BaseFrame* frame[10];
-    for (int x=0; x<10; x++)
-        frame[x] = nullptr;
-
-    frame[0] = new BaseFrame(framebuf.getRegion(2,0), 10);
-    frame[0]->update("line three");
-    frame[1] = new BaseFrame(framebuf.getRegion(2,17), 3);
-    frame[1]->update("666");
-
-    StringFrame *mid = new StringFrame(framebuf.getRegion(2, 12), 3);
-    framebuf.addFrame(mid);
-    mid->update("foo");
-
-
-
-
+    DisplayManager displayManager;
     EmulatedLcdWindow window = EmulatedLcdWindow(LCD_COLS, LCD_ROWS, LCD_PIXEL_DIMENSIONS);
-    window.print(3,0, "Text on row 4 of LCD");
-    uint8_t counter = 0;
+
+    displayManager.addFrame(new StringFrame(0,0,11, "Temperature"));
+    displayManager.addFrame(new StringFrame(2,0,4, "Left"));
+    displayManager.addFrame(new StringFrame(2,7, 6, "Middle"));
+    displayManager.addFrame(new StringFrame(2, 15, 5, "Right"));
+    displayManager.addFrame(new StringFrame(3,4,10, "Bottom Row"));
+
+
+    MultiStringFrame* foo = new MultiStringFrame(1,5,4, 3);
+    foo->setValue(0, 500, "Uno!");
+    foo->setValue(1, 500, "Dos!");
+    foo->setValue(2, 1000, "Tres");
+    displayManager.addFrame(foo);
+
+    MultiStringFrame* bar = new MultiStringFrame(1,10, 1, 3);
+    bar->setValue(0, 500, "1");
+    bar->setValue(1, 500, "2");
+    bar->setValue(2, 1000, "3");
+    displayManager.addFrame(bar);
+
+    char* nextChar;
+
+    MultiStringFrame* pop = new MultiStringFrame(1, 19, 1, 5);
+    *nextChar = 0x2e;
+    pop->setValue(0, 100, nextChar);
+    *nextChar = 0xa5;
+    pop->setValue(1, 100, nextChar);
+    *nextChar = 0xeb;
+    pop->setValue(2, 100, nextChar);
+    *nextChar = 0xde;
+    pop->setValue(3, 100, nextChar);
+    *nextChar = 0x20;
+    pop->setValue(4, 800, nextChar);
+    displayManager.addFrame(pop);
+
+    StringFrame* ab = new StringFrame(3,15, 1, "A");
+    displayManager.addFrame(ab);
+
+    /*
+    SmashedDecimal* smashed[6];
+    for (int x=0; x<6; x++)
+        smashed[x] = new SmashedDecimal(&window,x, false, x+5);
+    //window.printChar(3,0, "Text on row 4 of LCD");
+    window.print(3,0," %1. 72. 73. 74. 75.");
+    smashed[5]->setValue(999);
+    window.printChar(3,1,5);
+    window.printChar(3,3,0);
+    window.printChar(3,7, 1);
+    window.printChar(3,11, 2);
+    window.printChar(3,15, 3);
+    window.printChar(3, 19, 4);
+*/
+
+
     while (window.isOpen()) {
-        window.print(0, counter % LCD_COLS, counter & 0x7f);
-        window.print(1, counter % LCD_COLS, 128 + (counter & 0x7f));
-        ++counter &=0x7f;
+        // @ToDo: tidy this up
+        auto ahora = std::chrono::system_clock::now().time_since_epoch();
+        auto currentTimeMillis = std::chrono::duration_cast<std::chrono::milliseconds>(ahora).count();
 
-        framebuf.render(time(nullptr));
+        displayManager.render((int)(currentTimeMillis & 0x7fffffff));
 
-        char* row = framebuf.getRow(2);
-        for (int x=0; x<20; x++) {
-            char c = row[x];
-            window.print(2,x, row[x]);
+        for (int rowNumber = 0; rowNumber < LCD_ROWS; rowNumber++) {
+            for (int x=0; x<LCD_COLS; x++) {
+                char* cp = displayManager.charAt(rowNumber, x);
+                window.printChar(rowNumber, x, *cp);
+            }
         }
 
-
-
-
         window.handleWindowEvents();
-        Sleep(200);
+
+
+       
+
+        //Sleep(100);
     }
 }

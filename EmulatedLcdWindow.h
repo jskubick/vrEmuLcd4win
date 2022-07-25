@@ -42,7 +42,7 @@ public:
      *  WARNING: absolutely no sanity checking is performed.
      *  row and col are 0-based.
      */
-    void print(int row, int col, uint8_t value);
+    void printChar(int row, int col, uint8_t value);
 
     /** Prints 'stringValue' on row {row}, starting from column {col}.
      * Warning: absolutely no sanity-checking is performed.
@@ -51,6 +51,8 @@ public:
      * how DRAM addresses map to character positions on a HD44780. And just to repeat, there's no sanity-checking.
      */
     void print(int row, int col, char* stringValue);
+
+    int createChar(int charNumber, uint8_t* data);
 
 private:
     uint8_t rows;

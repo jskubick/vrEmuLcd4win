@@ -1,19 +1,21 @@
-//
-// Created by root on 7/15/2022.
-//
-
 #include "StringFrame.h"
-StringFrame::StringFrame(char* pBuf, int length) : BaseFrame(pBuf, length) {
+
+#include <iostream>
+
+StringFrame::StringFrame(int row, int startCol, int width, char* content) : BaseFrame(row, startCol, width) {
+    stringContent = (char*)malloc(width);
+    for (int x=0; x<width; x++)
+        stringContent[x] = content[x];
 }
 
-bool StringFrame::render(int millis) {
-    //@ToDo: Temporary hack to alternate StringFrame's value between two strings
-    if (millis - lastChange < 1)
-        return false;
-    lastChange = millis;
-    if (buf[0] == 'f')
-        copy("bar", buf, 3);
-    else
-        copy("foo", buf, 3);
+bool StringFrame::renderInto(char* target, int currentTime) {
+    for (int x=0; x<width; x++) {
+        *((target + (row * LCD_COLS) + startCol + x)) = stringContent[x];
+    }
     return true;
+}
+
+void StringFrame::update(char* newContent) {
+    for (int x=0; x<width; x++)
+        stringContent[x] = newContent[x];
 }

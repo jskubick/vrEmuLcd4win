@@ -1,24 +1,6 @@
-//
-// Created by root on 7/14/2022.
-//
-
 #include "BaseFrame.h"
 
-BaseFrame::BaseFrame(char* pBuf, int len) : buf(pBuf), maxLength(len) {
-
-}
-
-void BaseFrame::update(char* newValue) {
-    int offset = 0;
-    while ((offset < maxLength) && (newValue[offset] > 0)) {
-        buf[offset] = newValue[offset];
-        offset++;
-    }
-}
-
-bool BaseFrame::render(int millis) {
-    return false;
-}
+BaseFrame::BaseFrame(int row, int startCol, int width) : row((uint8_t)row), startCol((uint8_t)startCol), width((uint8_t)width) {}
 
 bool BaseFrame::copy(char* src, char* dest, int len) {
     int x=0;
@@ -29,4 +11,8 @@ bool BaseFrame::copy(char* src, char* dest, int len) {
         x++;
     }
     return isChanged;
+}
+
+bool BaseFrame::renderInto(char* buf, int currentTimeMillis) {
+    return false;
 }

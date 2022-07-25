@@ -93,19 +93,28 @@ void EmulatedLcdWindow::moveToHome() {
 }
 
 void EmulatedLcdWindow::moveTo(uint8_t row, uint8_t col) {
-    int ddramOffset = vrEmuLcdGetDataOffset(lcd, col, row);
+    int ddramOffset = vrEmuLcdGetDataOffset(lcd, row, col);
     vrEmuLcdSendCommand(lcd, ((uint8_t)(LCD_CMD_SET_DRAM_ADDR & 0xff) | (uint8_t)(ddramOffset & 0x7f)) );
 }
 
 
-void EmulatedLcdWindow::print(int row, int col, uint8_t value) {
-    moveTo(col, row);
+void EmulatedLcdWindow::printChar(int row, int col, uint8_t value) {
+    moveTo(row, col);
     writeByte(value);
 }
 
 void EmulatedLcdWindow::print(int row, int col, char* stringValue) {
-    moveTo(col, row);
+    moveTo(row, col);
     writeString(stringValue);
+}
+
+
+int EmulatedLcdWindow::createChar(int charNumber, uint8_t* data) {
+    charNumber &= 0x7; // only 8 characters are available... 0 through 7
+    sendCommand(LCD_CMD_SET_CGRAM_ADDR | (charNumber * 8));
+    for (int x=0; x<8; x++)
+        writeByte(data[x]);
+    return 0;
 }
 
 

@@ -1,19 +1,18 @@
-//
-// Created by root on 7/15/2022.
-//
-
 #ifndef FAKELCD_STRINGFRAME_H
 #define FAKELCD_STRINGFRAME_H
 
-
+#include <cstdint>
 #include "BaseFrame.h"
+#include "DisplayManager.h"
 
 class StringFrame : public BaseFrame {
 public:
-    StringFrame (char* pointer, int size);
-    bool render(int millis) override;
+    StringFrame(int row, int startCol, int width, char* content);
+    bool renderInto(char* target, int currentTime);
+    void update(char* newContent);
+    //static StringFrame* create(DisplayManager* pCharacterDisplay, int row, int col, int len, char* pContentString);
 private:
-    int lastChange = 0;
+    char* stringContent;
 };
 
 
