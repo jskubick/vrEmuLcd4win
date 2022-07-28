@@ -12,7 +12,7 @@ public:
     DisplayManager();
     char* charAt(int row, int col);
     char* getRow(int row);
-    void addFrame(BaseFrame* frame);
+    BaseFrame* addFrame(BaseFrame* frame);
     bool render(int millis);
 private:
     char buf[LCD_ROWS][LCD_COLS];

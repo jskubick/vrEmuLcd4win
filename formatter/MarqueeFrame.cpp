@@ -27,6 +27,20 @@ MarqueeFrame::MarqueeFrame(int row, int startCol, int displayWidth, int totalCha
 bool MarqueeFrame::renderInto(char* target, int currentTimeMillis) {
 
     int totalTimeSinceCurrentFirstCharBecameFirst = (currentTimeMillis & 0xFFFF) - timeWhenCurrentCharBecameFirst;
+
+    // @ToDo: doesn't handle most scenarios correctly
+    char nextOffscreenChar = *(content + currentFirstChar + width -1);
+    if (    (currentFirstChar + width -1 == totalChars) &&
+            (totalTimeSinceCurrentFirstCharBecameFirst > 0) &&
+            (totalTimeSinceCurrentFirstCharBecameFirst < (10 * decaMillisPerEnd))  )
+        return false;
+
+    if (    (nextOffscreenChar == 0x20) &&
+            (totalTimeSinceCurrentFirstCharBecameFirst > 0) &&
+            (totalTimeSinceCurrentFirstCharBecameFirst < (10 * decaMillisPerWhitespace))
+            )
+        return false;
+
     if (    (totalTimeSinceCurrentFirstCharBecameFirst > 0) &&
             (totalTimeSinceCurrentFirstCharBecameFirst < (10 * decaMillisPerChar))  )
         return false;

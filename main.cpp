@@ -13,6 +13,10 @@
 #include "formatter/SmashedDecimal.h"
 #include "formatter/MultiStringFrame.h"
 #include "formatter/MarqueeFrame.h"
+#include "formatter/CustomCharManager.h"
+#include "formatter/BaseNumberRenderer.h"
+#include "formatter/NumberRenderer.h"
+#include "formatter/NumberFrame.h"
 
 int main() {
     DisplayManager displayManager;
@@ -22,7 +26,6 @@ int main() {
     displayManager.addFrame(new StringFrame(2,0,4, "Left"));
     displayManager.addFrame(new StringFrame(2,7, 6, "Middle"));
     displayManager.addFrame(new StringFrame(2, 15, 5, "Right"));
-    displayManager.addFrame(new StringFrame(3,4,10, "Bottom Row"));
 
 
     MultiStringFrame* foo = new MultiStringFrame(1,5,4, 3);
@@ -52,7 +55,12 @@ int main() {
     pop->setValue(4, 800, nextChar);
     displayManager.addFrame(pop);
 
+    CustomCharManager charManager;
+    char twoDigitValue[2];
+    charManager.renderNumberTo(twoDigitValue, 2, -36);
+
     displayManager.addFrame(new MarqueeFrame(0, 8, 12, 20, "System is running", 10, 50, 200));
+
 
     /*
     SmashedDecimal* smashed[6];
@@ -69,11 +77,33 @@ int main() {
     window.printChar(3, 19, 4);
 */
 
+    // @ToDo: refactor so NumberRenderer<> combines NumberRenderer<> and NumberFrame
 
+    NumberRenderer<3> number(&charManager, 69.0);
+    displayManager.addFrame(new NumberFrame(3,17, 3, &number));
+
+    NumberRenderer<2> number2(&charManager, 9.4);
+    NumberFrame* numberFrame2 = (NumberFrame*)displayManager.addFrame(new NumberFrame(3, 14, 2, &number2));
+
+
+    int testval = 5;
+    unsigned long long lastChange = 0;
     while (window.isOpen()) {
         // @ToDo: tidy this up
         auto ahora = std::chrono::system_clock::now().time_since_epoch();
         auto currentTimeMillis = std::chrono::duration_cast<std::chrono::milliseconds>(ahora).count();
+
+        if (lastChange == 0)
+            lastChange = currentTimeMillis;
+
+        if (currentTimeMillis > (lastChange + 300)) {
+            numberFrame2->set(testval);
+            lastChange = currentTimeMillis;
+            testval++;
+            if (testval > 110)
+                testval = -50;
+
+        }
 
         displayManager.render((int)(currentTimeMillis & 0x7fffffff));
 

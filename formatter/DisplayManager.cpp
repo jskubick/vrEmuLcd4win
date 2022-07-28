@@ -16,8 +16,9 @@ char* DisplayManager::getRow(int row) {
     return &buf[row][0];
 }
 
-void DisplayManager::addFrame(BaseFrame* frame) {
+BaseFrame* DisplayManager::addFrame(BaseFrame* frame) {
     frames.push_back(frame);
+    return frame;
 }
 
 bool DisplayManager::render(int millis) {
