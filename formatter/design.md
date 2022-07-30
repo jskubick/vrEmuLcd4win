@@ -1,3 +1,139 @@
+Cycle timer is 5 characters wide
+    Can go up to 99:59
+
+
+The cycle timer needs to show seconds & minutes... but really, won't exceed 2 hours.
+    starts out as 00:00 to 59:59
+    with decimalFifth or customTenth, switches to 9:mm$ (1hz colon) for next 1-10 hours
+
+if cycle timer has "1H" character, can use 6 characters & go up to 1:59:59
+    H59:59
+
+if cycle timer has 7 characters
+    0:mm:ss
+
+timer5: 5 characters, renders as follows:
+    <1h:    59:59 (steady colon)
+    <24h:   23:59 (1hz colon)
+    <1000d:   +999d  23:59 (2hz colon)
+    <10000d:  9999d  23:59 (2hz colon)
+
+
+timer65 (requires decimalFifths with zero at 0..4
+    uses .0, .2, and .4 to represent :00-:19, :20-:39, and :40-:59
+    indicated as $ below:
+    <1d:    23:59$ (1hz colon)
+    <17y:   "+1 day", "9 days", "99days", "+9999d" then 23:59$ (2hz colon)
+
+timer6A (requires dedicated custom character)
+    uses custom character to render tenths of a minute (ie, .3=30 to 39s, .5=50s to 59s)
+    otherwise, same as timer65
+
+a ~2 hour timer needs 13 bits, so I could actually use 3 of them for other purposes.
+* use 1 to indicate rollover
+
+
+
+
+
+8 bits: 4:16
+9 bits: 8:32
+10 bits: 17:04
+11 bits: 34:08
+12 bits: 68:16
+13 bits: 136:32 = 2:16:32
+14 bits: 273:04 = 4:33:04
+15 bits: 546:08 = 9:06:08
+16 bits: 1092:16 = 18:12:16
+17 bits: 36 hours
+18 bits: 72 hours
+19 bits: 6 days
+20 bits: 12 days
+21 bits: 24 days
+22 bits: 48 days
+23 bits: 96 days
+24 bits: 192 days
+25 bits: 384 days
+26 bits: 2 years
+27 bits: 4 years
+28 bits: 8 years
+29 bits: 17 years
+30 bits: 34 years
+31 bits: ~68 years
+32 bits: ~136 years
+    
+    0h to 1h:   00:00 to 59:59 (steady colon)
+    1h to 24H   00:00 to 23:59 (1hz colon indicates that it's hh:mm and not mm:ss)
+                +01h       59:59   (2hz colon indicates that time > 1h)
+    1d to 10d:  9d 24h    59:59     (2hz colon indicates that time > 1h)
+    10d=99d:    99+24    
+    9d23h  59:59
+        1-10d
+        2hz colon
+    99+24   59:59
+        11-100 days
+        2hz colon
+    9999d  23:59
+        assumed to be abnormal overflow condition, but good for 27 years
+        2hz colon
+
+timer6: 6 characters, needs .0/.2/.4 or ownChar, renders as follows:
+    _59:59 (1-bit option to disable and go straight to 23:59$)
+        0s to 1h
+        colon steady
+    23:59$
+        1h to 24h
+        $ is .0 (0-19s), .2 (20-39s), or .4 (40-59s)
+        colon blinks at 1hz
+    9 days  23:59$
+    99 day  23:59$
+    999day  23:59$
+    99999d  23:59$
+        same as 23:59$, but colon blinks at 2hz
+        could conceivably cover ~273 years
+
+timer8: 8 characters
+    23:59:59 or 23h59m59s
+        0s to 1day
+        colons steady
+    99+23:59:59 or 99+23h59:59
+    99d23:59:59 or 99d23h59:59
+        1-100 days
+        1hz colon
+    999 days 23:59:59
+    9999 day 23:59:59
+        up to 27 years
+        colon between hours and minutes alternates between : and dot
+    config-bits:
+    0:  23:59:59
+    1:  23h59m59s
+
+    0: displays values between 1 and 100 days as 09+23:59
+    1: displays values between 1 and 9999 days as if they were 999+ days
+
+    23:59:59
+    23h59:59
+
+    99d24:59 (1hz colon)
+    99+24:59 (1hz colon)
+
+    00  23:59:59    99d23:59
+    01  23:59:59    99+23:59
+    10  23h59m59s   99d23:59
+    11  23h59m59s   99+23:59
+
+x0: times less than 1 day render as 23:59:59
+x1: times less than 1 day render as 23h59:59
+
+00: 1-10 days renders as 01d23:59 (1hz colon)
+01: 1-10 days renders as 01+23:59 (1hz colon)
+
+10: 1-10 days renders as 10 days  then  23:59:59
+11: 1-10 days renders as 10 days  then  23h59:59
+
+
+
+
 Number Scenarios:
 
 1. Custom character pool:
@@ -345,3 +481,65 @@ Possibilities for FloatFrame<3>:
     * the Frame has a custom character at its disposal
 
 
+
+2/2
+[-19 ,-9] to [99, 109, 119]
+
+3/2
+(steals leading whitespace for minus when necessary)
+-[-199,-99] to [99,109, 119]
+
+3/3
+-99 to 999
+-9.8 to 99.8, 109.8, or 119.8
+
+4/3
+-999 to 999
+-99.8 to 99.8, 109.8, or 119.8
+
+config bits:
+
+000 no prefix. Character width is same as number of digits. Negative values have 1/10 the range of positive values.
+001 undefined
+010 prefix is space, negative prefix is (
+011 positive prefix is '+', negative prefix is '-'
+100 positive prefix is '+', negative prefix is '-'
+101 positive prefix is space, negative prefix is furnished by CustomCharManager
+110 positive prefix is colon, negative prefix is furnished by CustomCharManager
+111 positive and negative prefix furnished by CustomCharManager
+
+no decimal, right-aligned
+no decimal, right-aligned and zero-prefixed
+no decimal, left-aligned
+if room, tenths (if customChar != 0) or fifths... right-aligned
+right-aligned .1 if room, left-aligned otherwise
+right-aligned .01 if room, left-aligned otherwise
+right-aligned .001 if room, left-aligned otherwise
+    ex, with 5 characters:
+        9.001
+        10.01
+        100.1
+        1001 
+        99999
+        -.001
+        -1.01
+        -10.1
+        -100
+        -9999
+
+
+
+a TempHumFrame
+    3-characters wide
+        temperature:
+            -10 to -99
+            -9$ to -0$
+             0$ to  9$
+            10$ to 99$
+            100 to 999
+        dew point:
+            01ﾞ to 99ﾐ
+        humidity:
+             0% to  9%
+            10% to 99%
+            1∞%

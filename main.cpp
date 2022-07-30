@@ -40,7 +40,7 @@ int main() {
     bar->setValue(2, 1000, "3");
     displayManager.addFrame(bar);
 
-    char* nextChar;
+    char nextChar[1];
 
     MultiStringFrame* pop = new MultiStringFrame(1, 19, 1, 5);
     *nextChar = 0x2e;
