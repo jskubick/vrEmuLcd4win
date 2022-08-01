@@ -1,7 +1,3 @@
-//
-// Created by root on 7/31/2022.
-//
-
 #include <iostream>
 #include "TimeCounter5charFrame.h"
 #include "DisplayManager.h"
