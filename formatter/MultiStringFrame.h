@@ -9,7 +9,7 @@ class MultiStringFrame : public BaseFrame {
 public:
     MultiStringFrame(int row, int startCol, int width, int quantity);
     void setValue(int whichOne, int millisToShow, const char* newValue);
-    bool renderInto(char* target, int currentTimeMillis);
+    bool renderInto(char* target, uint32_t currentTimeMillis);
 private:
     uint8_t howMany;
     char* pValues;

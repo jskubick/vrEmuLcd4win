@@ -13,7 +13,7 @@ class NumberFrame : public BaseFrame {
 public:
     NumberFrame(int row, int startCol, int width, BaseNumberRenderer* pRenderer);
     void set(float newValue);
-    bool renderInto(char* buf, int currentTimeMillis);
+    bool renderInto(char* buf, uint32_t currentTimeMillis);
 private:
     BaseNumberRenderer* pRenderer;
 };

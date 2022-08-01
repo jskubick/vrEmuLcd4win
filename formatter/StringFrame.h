@@ -8,7 +8,7 @@
 class StringFrame : public BaseFrame {
 public:
     StringFrame(int row, int startCol, int width, const char* content);
-    bool renderInto(char* target, int currentTime);
+    bool renderInto(char* target, uint32_t currentTime);
     void update(char* newContent);
     //static StringFrame* create(DisplayManager* pCharacterDisplay, int row, int col, int len, char* pContentString);
 private:

@@ -14,7 +14,7 @@ void MultiStringFrame::setValue(int whichOne, int millisToShow, const char* newV
     *(millisPerFrame + whichOne) = (uint16_t)millisToShow;
 }
 
-bool MultiStringFrame::renderInto(char* target, int currentTimeMillis) {
+bool MultiStringFrame::renderInto(char* target, uint32_t currentTimeMillis) {
     uint16_t timeToShowCurrentOne = *(millisPerFrame + currentOne);
     int timeSinceLastUpdate = (currentTimeMillis & 0xffff) - lastUpdate;
 

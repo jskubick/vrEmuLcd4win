@@ -12,7 +12,7 @@ class MarqueeFrame : public BaseFrame {
 public:
     MarqueeFrame(int row, int startCol, int displayWidth, int totalChars, const char *content,
                  int decaMillisPerChar, int whitespacePauseMillis, int endPauseMillis);
-    bool renderInto(char* target, int currentTimeMillis);
+    bool renderInto(char* target, uint32_t currentTimeMillis);
 private:
     char* content;
     uint8_t totalChars;

@@ -1,6 +1,33 @@
 Cycle timer is 5 characters wide
-    Can go up to 99:59
+    official range: 100 minutes (99:59)
+    If it rolls over, the leading digit becomes A, and it continues to increment until reaching Z.
+    
+    36 * 10 * 60 = 21600 seconds = 6 hours
+    100 minutes = 6000 seconds
+    13 bits = 8192
 
+    bits 15 & 14:
+        00  not counting up OR counting down
+        01  undefined
+        10  counting down towards value
+        11  counting up towards value
+
+    bit 13: undefined
+
+    bits 12..0:
+        when 15/14 are 00: 
+            0x1FFF: undefined
+            0x1FFE: overflow
+            0..5999 = specific value, 00:00 to 99:59
+
+        when 15/14 are 10:
+            target I'm counting down towards
+
+        when 15/14 are 11:
+            goal I'm counting up towards
+
+   If timer has 15 bits, max time before overflow is 32768s =  546'8" (or, 9h06:08)
+    z9:59 is 36*10*60 = 21600
 
 The cycle timer needs to show seconds & minutes... but really, won't exceed 2 hours.
     starts out as 00:00 to 59:59
@@ -32,6 +59,8 @@ timer6A (requires dedicated custom character)
 a ~2 hour timer needs 13 bits, so I could actually use 3 of them for other purposes.
 * use 1 to indicate rollover
 
+
+z9:59 is 36 x 10 x 60 seconds = 360 minutes or 21,600 seconds
 
 
 

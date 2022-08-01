@@ -24,7 +24,7 @@ MarqueeFrame::MarqueeFrame(int row, int startCol, int displayWidth, int totalCha
  *      content is shorter than marquee window
  *      distance to first space is longer than marquee window
  */
-bool MarqueeFrame::renderInto(char* target, int currentTimeMillis) {
+bool MarqueeFrame::renderInto(char* target, uint32_t currentTimeMillis) {
 
     int totalTimeSinceCurrentFirstCharBecameFirst = (currentTimeMillis & 0xFFFF) - timeWhenCurrentCharBecameFirst;
 

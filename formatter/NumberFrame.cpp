@@ -9,7 +9,7 @@ NumberFrame::NumberFrame(int row, int startCol, int width, BaseNumberRenderer* p
 
 }
 
-bool NumberFrame::renderInto(char* target, int currentTimeMillis) {
+bool NumberFrame::renderInto(char* target, uint32_t currentTimeMillis) {
     pRenderer->renderValue(target + (row * LCD_COLS) + startCol);
     return true;
 }

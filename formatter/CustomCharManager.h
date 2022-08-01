@@ -9,6 +9,10 @@
 
 class CustomCharManager {
 public:
+
+    bool hasDecimalFifths();
+
+    // @ToDo: deprecated
     bool renderNumberTo(char* pTarget, int digits, float value);
 };
 

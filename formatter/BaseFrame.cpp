@@ -13,7 +13,7 @@ bool BaseFrame::copy(char* src, char* dest, int len) {
     return isChanged;
 }
 
-bool BaseFrame::renderInto(char* buf, int currentTimeMillis) {
+bool BaseFrame::renderInto(char* buf, uint32_t currentTimeMillis) {
     return false;
 }
 

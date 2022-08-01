@@ -37,6 +37,9 @@ void BaseNumberRenderer::render3digitValue(char* dest) {
     for (int x=0; x<width; x++) {
         dest[x+leftPadLength] = buf[x];
     }
+
+    // @ToDo: remove this!
+    //dest[2+leftPadLength] = 0xeb;
 }
 
 void BaseNumberRenderer::renderValue(char* dest) {

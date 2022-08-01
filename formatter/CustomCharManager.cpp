@@ -24,8 +24,10 @@ bool render2digits(char* pTarget, float value) {
             }
 
             itoa(truncatedValue, three, 10);
+
             for (int x=0; x<2-first; x++)
                 *(pTarget+first+x) = three[x];
+
             return true;
         }
         pTarget[0]='+';
@@ -58,4 +60,8 @@ bool CustomCharManager::renderNumberTo(char* pTarget, int digits, float value) {
         render2digits(pTarget, value);
     if (digits == 3)
         render3digits(pTarget, value);
+}
+
+bool hasDecimalFifths() {
+    return false;
 }

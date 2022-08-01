@@ -7,7 +7,7 @@
 class BaseFrame {
 public:
     BaseFrame(int row, int startCol, int width);
-    virtual bool renderInto(char* buf, int currentTimeMillis);
+    virtual bool renderInto(char* buf, uint32_t currentTimeMillis);
     static int strcopy(char* src, char* dest, int len, bool clearRemainder);
     static int strcopy(const char* src, char* dest, int len, bool clearRemainder);
 

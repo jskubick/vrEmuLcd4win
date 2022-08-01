@@ -8,7 +8,7 @@ StringFrame::StringFrame(int row, int startCol, int width, const char* content)
     strcopy(content, stringContent, width, true);
 }
 
-bool StringFrame::renderInto(char* target, int currentTime) {
+bool StringFrame::renderInto(char* target, uint32_t currentTime) {
     for (int x=0; x<width; x++) {
         *((target + (row * LCD_COLS) + startCol + x)) = stringContent[x];
     }

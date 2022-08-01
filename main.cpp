@@ -17,6 +17,7 @@
 #include "formatter/BaseNumberRenderer.h"
 #include "formatter/NumberRenderer.h"
 #include "formatter/NumberFrame.h"
+#include "formatter/TimeCounter5charFrame.h"
 
 int main() {
     DisplayManager displayManager;
@@ -61,6 +62,15 @@ int main() {
 
     displayManager.addFrame(new MarqueeFrame(0, 8, 12, 20, "System is running", 10, 50, 200));
 
+    TimeCounter5charFrame te5(3, 0);
+    uint16_t ctm = (uint32_t)(( std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()) ) ;
+    //..te5.set(ctm);
+    // 136:30 == 0x1ffe == "100m+"
+    // 136:31 == 0x1fff == "(6h+)"
+    te5.setValue(0,0);
+
+
+    displayManager.addFrame(&te5);
 
     /*
     SmashedDecimal* smashed[6];
@@ -87,6 +97,7 @@ int main() {
 
 
     int testval = 5;
+    int test2 = 0;
     unsigned long long lastChange = 0;
     while (window.isOpen()) {
         // @ToDo: tidy this up
@@ -103,7 +114,9 @@ int main() {
             if (testval > 110)
                 testval = -50;
 
+
         }
+        te5.setValue(0, test2++);
 
         displayManager.render((int)(currentTimeMillis & 0x7fffffff));
 
