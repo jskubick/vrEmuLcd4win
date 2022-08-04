@@ -1,3 +1,46 @@
+1+15: counting up, holds low 15 bits of time in seconds
+        renders as "mm:ss" (colon steady)
+
+010 + 13: counting up, holds low 13 bits of time in minutes (need 6000, have 8192)
+        renders as "hh:mm" (colon 1hz)
+
+011ccc+10:  counting up
+            low 10 bits hold time count in "approximate hours"
+                every 1024 hours (42.66 days), it rolls over, and ccc gets incremented
+                    Even if it DIDN'T roll over every 1024 hours, the 32-bit unsigned int with millis
+                    would roll over every ~49.66 days (~1,191 hours), and I'd have to deal with
+                    at least double the rollover complexity just to gain 56 days that will probably
+                    never actually be used anyway. A 341-day countdown is an INSANELY long time by
+                    embedded-device standards. In a state like Florida, an Arduino powered by a wall
+                    wart without backup power would be almost GUARANTEED to have at least one
+                    brownout reset LONG before it got anywhere CLOSE to that time.
+            thus, this counter can count a maximum of 8 * 1024 hours = 8192 = 341.33 days
+            renders as:
+                9d23h   59:59
+                99day   23:59 (1hz colon)
+                341d    23:59 (1hz colon)
+
+001 + 13 (13 < 6000): counting down from at most 99m99s, 1 second at a time
+001 + 13 (13 >= 6000): counting down from at most ~36h30m, 1 minute at a time
+
+000 + 13: (13 < 6000): static value that renders to 00:00 through 99:59
+000 + 13: (13 >= 6000, but less than 0xFFFE): static value that renders as 35:59 with 1hz colon
+
+011 + 13: counting up, holds low 13 bits of time in hours 
+    ~341 days = 8182 hours
+    49 days = 
+
+after hitting 100 minutes, I'll switch to hh:mm
+100 hours needs 8192
+42 days need 1008 hours
+if I use 3 bits + 10 bits per 42 days, I can count a maximum of ~336 days
+if I stretch it out to one chunk per 49.66 days, I can count a maximum of ~397.28 days
+
+
+
+
+
+
 Cycle timer is 5 characters wide
     official range: 100 minutes (99:59)
     If it rolls over, the leading digit becomes A, and it continues to increment until reaching Z.

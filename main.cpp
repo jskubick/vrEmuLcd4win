@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <Windows.h>
 #include <chrono>
+#include <iostream>
 
 
 #define LCD_PIXEL_DIMENSIONS 3.0
@@ -18,24 +19,27 @@
 #include "formatter/NumberRenderer.h"
 #include "formatter/NumberFrame.h"
 #include "formatter/TimeCounter5charFrame.h"
+#include "formatter/HexFrame.h"
+
+uint32_t millis() {
+    return (uint32_t)( std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() & 0xFFFFFFFF);
+}
 
 int main() {
     DisplayManager displayManager;
     EmulatedLcdWindow window = EmulatedLcdWindow(LCD_COLS, LCD_ROWS, LCD_PIXEL_DIMENSIONS);
 
     displayManager.addFrame(new StringFrame(0,0,8, "Status:"));
-    displayManager.addFrame(new StringFrame(2,0,4, "Left"));
-    displayManager.addFrame(new StringFrame(2,7, 6, "Middle"));
-    displayManager.addFrame(new StringFrame(2, 15, 5, "Right"));
 
 
-    MultiStringFrame* foo = new MultiStringFrame(1,5,4, 3);
+
+    MultiStringFrame* foo = new MultiStringFrame(1,0,4, 3);
     foo->setValue(0, 500, "Uno!");
     foo->setValue(1, 500, "Dos!");
     foo->setValue(2, 1000, "Tres");
     displayManager.addFrame(foo);
 
-    MultiStringFrame* bar = new MultiStringFrame(1,10, 1, 3);
+    MultiStringFrame* bar = new MultiStringFrame(1,5, 1, 3);
     bar->setValue(0, 500, "1");
     bar->setValue(1, 500, "2");
     bar->setValue(2, 1000, "3");
@@ -43,7 +47,7 @@ int main() {
 
     char nextChar[1];
 
-    MultiStringFrame* pop = new MultiStringFrame(1, 19, 1, 5);
+    MultiStringFrame* pop = new MultiStringFrame(1, 12, 1, 5);
     *nextChar = 0x2e;
     pop->setValue(0, 100, nextChar);
     *nextChar = 0xa5;
@@ -62,15 +66,30 @@ int main() {
 
     displayManager.addFrame(new MarqueeFrame(0, 8, 12, 20, "System is running", 10, 50, 200));
 
-    TimeCounter5charFrame te5(3, 0);
-    uint16_t ctm = (uint32_t)(( std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()) ) ;
-    //..te5.set(ctm);
-    // 136:30 == 0x1ffe == "100m+"
-    // 136:31 == 0x1fff == "(6h+)"
+    TimeCounter5charFrame te5(2, 0);
     te5.setValue(0,0);
-
-
     displayManager.addFrame(&te5);
+
+
+    HexFrame* secondsFrame = (HexFrame*)displayManager.addFrame(new HexFrame(1, 14, 6));
+
+
+    TimeCounter5charFrame* elapsedTime = (TimeCounter5charFrame*)displayManager.addFrame(new TimeCounter5charFrame(2,7));
+    elapsedTime->startCountingFromZero((uint32_t)(millis()));
+
+    TimeCounter5charFrame* slowCountdown = (TimeCounter5charFrame*)displayManager.addFrame(new TimeCounter5charFrame(3,15));
+    slowCountdown->startLongCountdown(6,30, millis());
+
+    TimeCounter5charFrame* slowTimer = (TimeCounter5charFrame*)displayManager.addFrame(new TimeCounter5charFrame(3,0));
+    slowTimer->startSlowlyCountingFromZero(millis());
+
+    TimeCounter5charFrame* countdown = (TimeCounter5charFrame*)displayManager.addFrame(new TimeCounter5charFrame(2, 14));
+    countdown->startCountdown(22,10, millis());
+
+
+
+
+
 
     /*
     SmashedDecimal* smashed[6];
@@ -90,26 +109,36 @@ int main() {
     // @ToDo: refactor so NumberRenderer<> combines NumberRenderer<> and NumberFrame
 
     NumberRenderer<3> number(&charManager, 69.0);
-    displayManager.addFrame(new NumberFrame(3,17, 3, &number));
+    displayManager.addFrame(new NumberFrame(1,9, 3, &number));
 
     NumberRenderer<2> number2(&charManager, 9.4);
-    NumberFrame* numberFrame2 = (NumberFrame*)displayManager.addFrame(new NumberFrame(3, 14, 2, &number2));
+    NumberFrame* numberFrame2 = (NumberFrame*)displayManager.addFrame(new NumberFrame(1, 6, 2, &number2));
+
 
 
     int testval = 5;
     int test2 = 0;
     unsigned long long lastChange = 0;
+
+
+    for (uint32_t fakeTime = 0; fakeTime <0xffff; fakeTime++) {
+        uint32_t testValue = countdown->test(fakeTime, 8190);
+        if (countdown->isSame(fakeTime, (uint16_t)testValue, 8190) == false) {
+            std::cout << "different at " << fakeTime;
+            countdown->test(fakeTime, 8190);
+            countdown->isSame(fakeTime, testValue, 8190);
+        }
+    }
+
+
     while (window.isOpen()) {
-        // @ToDo: tidy this up
-        auto ahora = std::chrono::system_clock::now().time_since_epoch();
-        auto currentTimeMillis = std::chrono::duration_cast<std::chrono::milliseconds>(ahora).count();
 
         if (lastChange == 0)
-            lastChange = currentTimeMillis;
+            lastChange = millis();
 
-        if (currentTimeMillis > (lastChange + 300)) {
+        if (millis() > (lastChange + 300)) {
             numberFrame2->set(testval);
-            lastChange = currentTimeMillis;
+            lastChange = millis();
             testval++;
             if (testval > 110)
                 testval = -50;
@@ -118,7 +147,10 @@ int main() {
         }
         te5.setValue(0, test2++);
 
-        displayManager.render((int)(currentTimeMillis & 0x7fffffff));
+        secondsFrame->set(millis() / 1000);
+
+
+        displayManager.render(millis());
 
         for (int rowNumber = 0; rowNumber < LCD_ROWS; rowNumber++) {
             for (int x=0; x<LCD_COLS; x++) {
@@ -126,12 +158,7 @@ int main() {
                 window.printChar(rowNumber, x, *cp);
             }
         }
-
         window.handleWindowEvents();
 
-
-
-
-        //Sleep(100);
     }
 }
