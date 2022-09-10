@@ -615,3 +615,137 @@ a TempHumFrame
              0% to  9%
             10% to 99%
             1∞%
+
+
+/*
+* A ScaledTimekeeper keeps (approximate) track of the passage of time for more than a year using only 2 bytes of RAM
+* to maintain its state between calls.
+* OK, obviously, the class itself takes RAM if you're using it on a platform that doesn't execute directly from flash
+* (I developed it primarily with 8-bit AVR Arduino in mind), and it uses up to a few dozen bytes of RAM at a time
+* during execution... but as far as I know, all of THAT RAM comes off the stack, not the heap, so it won't contribute
+* to long-term heap fragmentation. If you happen to stumble over something in my code that DOES result in heap allocation,
+* PLEASE file a highest-priority bug report.
+*
+* The diminishing resolution is my best attempt to strike a balance between "needing to know how much time has elapsed"
+* and "being able to keep track of potentially long periods of time". My rationale was, "the more time that's elapsed
+* since the event occurred, the less the PRECISION of the timestamp really matters".
+*
+* To be honest, this whole project started out when I was writing the code to display a 5-character timer, decided I
+* wanted some way to gracefully handle overflows, then went wildly overboard attempting to handle even the most EGREGIOUS
+* of overflows. Hence, the 1-second resolution for the first 100 minutes, and 60s resolution for the next ~100 hours.
+*
+*  10 20 30 40 50 (1' 2' 3' 4' 5')
+*  15 30 45 00
+*  00 20 40 (.0 .2 .4)
+*
+
+*
+* Timekeeping resolution is as follows:
+*      Scheme 1 (15-second resolution for second period)
+*          enables 6-char display w/custom character, like 17:23~, where ~ is 00, 15, 30, 45 mashed together
+*      exact static value between 00:00 and 99:59, plus other values to flag things like '--:--' and '??:??'
+*          000 + 13
+*      first 99m99s: 1-second
+*          001+13
+*      next 262h20m: 1-minute (period ends exactly 11 days (264 hours) after timekeeping begins to simplify remaining calculations
+*          01+14
+*      next 7 x 42 days: 15-minute
+*          1nnn (nnn<111) + 12
+*      last 4 x 42 days: 1-hour
+*          1111nn + 10
+*
+*      Scheme 1
+*          000+13: constant
+*          001+13: first 99m99s (1s resolution), ends exactly 1h40m after timer start
+*          01+14: next 262h20m (1m resolution), ends exactly 11 days (264h) after timekeeping begins
+*          1nnx + 12: 7 x 42 days (15m resolution)
+*          1111nn + 10: 4 x 42 days (1h resolution)
+*
+*      Scheme 2
+*          000+13: constant
+*          001+13: first 2 hours (1s resolution), ends exactly 2 hours after timer start
+*          010+13: next 22 hours (10s resolution), ends exactly 1 day/24h after timer start
+*          011+13: next 5 days (1m resolution), ends exactly 6d/144h after timer start
+*          1nnnx + 12: 7 x 42 days (15m resolution)
+*          1111nn + 10: 4 x 42 days (1 hour resolution)
+*
+*      Scheme 3 (10-second or better resolution for first 47 hours, 1-minute or better next 11 days
+*          000+13: constant
+*          001+13: first 2 hours (1s resolution)
+*          01+14: next 45 hours (10s resolution)
+*          10+14: 11 days (1-minute resolution)
+*          1nnn (<1111) + 12: 7 x 42 days (15-minute resolution)
+*          1111nn + 10: 4 x 42 days (1-hour resolution)
+*
+*      Alternate Scheme 1:
+*          00+14: 4h32m (1s resolution)
+*          01+14: next 22 hours (10s resolution)
+*          1nnx+12: 7 x 42 days (15m resolution)
+*          111110 + 10: 2 x 42 days (1 hour resolution)
+*          111111 + 10: constant values from 00:00 to 99:55 in 5-second increments
+*                       plus entire range from 00:00 to 00:59, plus 8 spares for hardwired values like --:-- and ??:??
+*
+*      Alternate Scheme 2:
+*          000+13: 2h32m (1s resolution)
+*          001+13: 
+*
+*          at 1s resolution, an entire 16-bit value can only encode 18 hours
+*
+*      24-bit scheme:
+*          [00 01 10] + 22 = 48 days @ 1-second resolution
+*          11zzz+19 = 7 x 30 days @ 5-second resolution
+*          11111zzz+16 = 7 x 45 days @ 1-minute resolution
+*          11111111zzz+13: undefined
+*          11111111111+13 = specific and special values 00:00 to 99:59 plus others
+*
+*      32-bit scheme:
+*          nnnnnnnnnn + 22 = 1024 x 48 days @ 1-second resolution (134 years)
+*          to meet my goal of being able to go 1 year without overflow and 48-day periods, I need 8 periods
+*          8 periods of 48 days with 1-second resolution requires 25 bits... 26, if I set aside a range for constant values.
+*
+*          if I set aside a 22-bit range for constant values,
+*              26 bits will get me 720 days
+*              27 bits will get me 1440 days (a little under 4 years)
+*              28 bits will get me 2880 days (7.88 years)
+*
+*          if timer itself is 32 bits, but encoding millis, I can conveniently count seconds in 22 bits and use remainder for rollover counting
+*
+*          2^32 / 1000 = 0x418397
+*          2^32 / 1024 = 0x3fffff
+*
+*          to represent a 32-bit timer with millis in seconds, I need 23 bits
+*          if I pretend there are 1024ms per second...
+*              error will accumulate at 1.44 seconds per minute, 86.4 seconds per hour, 2,073.6 seconds (34.5 minutes) per day.
+*              86,400,000ms vs 88,473,600ms
+*
+*         if I divide a second into 1024 mibiseconds
+*
+*         divide millTime by 1000, save low 22 bits
+*         goal = 48 x 24 x 60 x 60 = 4,147,200 seconds
+*         max that can fit in 22 bits is 4,194,304
+*         2^32ms / 1000 = 4,294,967. Damn, just a little too big.
+*
+*         Divide milliTime by 1000
+*
+*         if x is a 23-bit unsigned int packed into a 32-bit bitfield,
+*         milliTime is a 32-bit unsigned int holding a millisecond offset
+*         and I divide milliTime by 1000, is there any conceivable way it could make a difference whether or not
+*         I AND it with 0x7fffff?
+*
+*         uint32_t millisecTime
+*         // target is unsigned 23-bit value packed into a bitfield
+*         target =
+*
+*         Suppose I create a 32-bit bitfield, and stick a 23-bit unsigned int into it.
+*         Now, suppose I want to divide a 32-bit uint32_t by 1000, and store the result into it.
+*         What does C++ *require* me to do to absolutely guarantee (and silence any warnings) that I can assign the
+*         result of that division to my 23-bit unsigned
+*
+*
+*
+*
+*      to test Arduino millis-overflow handling, do this:
+*          noInterrupts();
+*          timer0_millis = 4294901760; // set timer counter to 45 seconds before overflow
+*          interrupts();
+*/

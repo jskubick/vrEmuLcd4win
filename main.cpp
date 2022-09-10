@@ -4,6 +4,7 @@
 #include <Windows.h>
 #include <chrono>
 #include <iostream>
+#include <cmath>
 
 
 #define LCD_PIXEL_DIMENSIONS 3.0
@@ -20,12 +21,78 @@
 #include "formatter/NumberFrame.h"
 #include "formatter/TimeCounter5charFrame.h"
 #include "formatter/HexFrame.h"
+#include "formatter/TimerFrame.h"
+#include "formatter/ScaledTimekeeper.cpp"
+#include "formatter/MmSsFrame.h"
+#include "formatter/Timekeeper.h"
 
 uint32_t millis() {
     return (uint32_t)( std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() & 0xFFFFFFFF);
 }
 
+int main2() {
+    DeprecatedTimekeeper timekeeper;
+
+    int64_t startTime = 0;
+    for (int64_t startTime : {0, 0x7000, 0x8000, 0x9000, 0xf000}) {
+        timekeeper.restart(startTime & 0xFFFFFFFF);
+        for (int64_t offset = 0; offset < 6000000; offset++) {
+            if (startTime == 0x7000)
+                printf("break\n");
+            uint32_t elapsed = timekeeper.getElapsedTime((startTime + offset) & 0xFFFFFFFF);
+
+            if (elapsed != (offset / 1000)) {
+                // @ToDo: craps out when currentTimeOffset = 0x7d0000 (8,192,000)
+                printf("mismatch when startTime=%d, offset=%d, elapsed=%d\n", startTime, offset, elapsed);
+                return 1;
+            }
+        }
+    }
+    printf("Passed!");
+}
+
 int main() {
+    DisplayManager displayManager;
+    EmulatedLcdWindow window = EmulatedLcdWindow(LCD_COLS, LCD_ROWS, LCD_PIXEL_DIMENSIONS);
+
+    MmSsFrame expectedInt(0,15);
+    //MmSsFrame expectedRounded(1,15);
+    MmSsFrame actualInt(1, 15);
+    MmSsFrame actualRounded(3,15);
+    displayManager.addFrame(&expectedInt);
+    //displayManager.addFrame(&expectedRounded);
+    displayManager.addFrame(&actualInt);
+    displayManager.addFrame(&actualRounded);
+    Timekeeper timekeeper;
+    uint32_t startTime = 0xfffff000;
+
+    timekeeper.restart(startTime);
+    //for (uint32_t milliTime = 0; milliTime < 6000000; milliTime+=13) {
+    uint32_t target = millis() + 6000000;
+    uint32_t milliTime = startTime;
+    do {
+        milliTime+=11;
+        uint32_t expectedMilli = (milliTime > startTime) ? (milliTime - startTime) : (0x100000000 - startTime) + milliTime;
+        expectedInt.setValue(expectedMilli / 1000);
+        //expectedRounded.setValue((uint32_t)round(milliTime / 1000.0));
+        actualInt.setValue(timekeeper.getAdjustedElapsedTime(milliTime));
+        actualRounded.setValue(timekeeper.getRoundedElapsedTime(milliTime));
+
+        displayManager.render(milliTime);
+
+        for (int rowNumber = 0; rowNumber < LCD_ROWS; rowNumber++) {
+            for (int x = 0; x < LCD_COLS; x++) {
+                char *cp = displayManager.charAt(rowNumber, x);
+                window.printChar(rowNumber, x, *cp);
+            }
+        }
+        window.handleWindowEvents();
+        //}
+    } while (true);
+
+}
+
+int main1() {
     DisplayManager displayManager;
     EmulatedLcdWindow window = EmulatedLcdWindow(LCD_COLS, LCD_ROWS, LCD_PIXEL_DIMENSIONS);
 
@@ -80,14 +147,15 @@ int main() {
     TimeCounter5charFrame* slowCountdown = (TimeCounter5charFrame*)displayManager.addFrame(new TimeCounter5charFrame(3,15));
     slowCountdown->startLongCountdown(6,30, millis());
 
-    TimeCounter5charFrame* slowTimer = (TimeCounter5charFrame*)displayManager.addFrame(new TimeCounter5charFrame(3,0));
-    slowTimer->startSlowlyCountingFromZero(millis());
+
 
     TimeCounter5charFrame* countdown = (TimeCounter5charFrame*)displayManager.addFrame(new TimeCounter5charFrame(2, 14));
     countdown->startCountdown(22,10, millis());
 
 
-
+    TimerFrame staticTimeFrame(3,0);
+    displayManager.addFrame(&staticTimeFrame);
+    staticTimeFrame.startTimer(millis() - (2 * 60 * 60 * 1000) - (15 * 60 * 1000));
 
 
 
@@ -129,6 +197,9 @@ int main() {
             countdown->isSame(fakeTime, testValue, 8190);
         }
     }
+
+
+
 
 
     while (window.isOpen()) {
