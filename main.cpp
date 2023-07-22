@@ -26,6 +26,12 @@
 #include "formatter/MmSsFrame.h"
 #include "formatter/Timekeeper.h"
 
+int main1();
+
+int main() {
+    return main1();
+}
+
 uint32_t millis() {
     return (uint32_t)( std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() & 0xFFFFFFFF);
 }
@@ -51,7 +57,7 @@ int main2() {
     printf("Passed!");
 }
 
-int main() {
+int mainTimerExperiment() {
     DisplayManager displayManager;
     EmulatedLcdWindow window = EmulatedLcdWindow(LCD_COLS, LCD_ROWS, LCD_PIXEL_DIMENSIONS);
 
